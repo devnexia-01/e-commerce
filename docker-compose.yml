@@ -2,39 +2,39 @@ version: '3.8'
 
 services:
   app:
-    image: evershop/evershop:latest
+    image: po:latest
     restart: always
     environment:
-      DB_HOST: database
+      DB_HOST: e-commerce-database-1
       DB_PORT: 5432
-      DB_PASSWORD: postgres
       DB_USER: postgres
-      DB_NAME: postgres
-    networks:
-      - myevershop
-    depends_on:
-      - database
+      DB_PASSWORD: postgres
+      DB_NAME: evershop
+      DB_SSLMODE: disable
     ports:
       - 3000:3000
-  
-  #The postgres database: 
+    depends_on:
+      - database
+    networks:
+      - evershop-network
+
   database:
-    image: postgres:16
-    restart: unless-stopped
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: evershop
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_DB: postgres
+      - ./init-scripts:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - 5432:5432
     networks:
-      - myevershop
+      - evershop-network
 
 networks:
-  myevershop:
-    name: MyEverShop
+  evershop-network:
     driver: bridge
 
 volumes:

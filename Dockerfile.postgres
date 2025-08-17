@@ -1,0 +1,32 @@
+FROM alpine:3.18
+
+# Install PostgreSQL 15
+RUN apk add --no-cache postgresql15 postgresql15-contrib
+
+# Create PostgreSQL data directory
+RUN mkdir -p /var/lib/postgresql/data && \
+    chown -R postgres:postgres /var/lib/postgresql/data && \
+    chmod 700 /var/lib/postgresql/data
+
+# Set environment variables
+ENV PGDATA=/var/lib/postgresql/data \
+    POSTGRES_PASSWORD=postgres \
+    POSTGRES_USER=postgres \
+    POSTGRES_DB=postgres
+
+# Copy initialization scripts
+COPY init-scripts /docker-entrypoint-initdb.d/
+
+# Switch to postgres user
+USER postgres
+
+# Initialize PostgreSQL database
+RUN initdb -D "$PGDATA" && \
+    echo "host all all 0.0.0.0/0 md5" >> "$PGDATA/pg_hba.conf" && \
+    echo "listen_addresses='*'" >> "$PGDATA/postgresql.conf"
+
+# Expose PostgreSQL port
+EXPOSE 5432
+
+# Start PostgreSQL server
+CMD ["postgres", "-D", "$PGDATA"]

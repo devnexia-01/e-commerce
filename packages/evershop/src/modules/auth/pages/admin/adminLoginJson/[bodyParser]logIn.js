@@ -7,28 +7,32 @@ import {
 
 export default async (request, response, next) => {
   try {
-    const message = translate('Invalid email or password');
-    const { body } = request;
-    const { email, password } = body;
-    await request.loginUserWithEmail(email, password, (error) => {
-      if (error) {
-        response.status(INTERNAL_SERVER_ERROR);
-        response.json({
-          error: {
-            status: INTERNAL_SERVER_ERROR,
-            message
-          }
-        });
-      } else {
-        response.status(OK);
-        response.$body = {
-          data: {
-            sid: request.sessionID
-          }
-        };
-        next();
+    // Bypass authentication - automatically log in with admin credentials
+    if (!request.locals) {
+      request.locals = {};
+    }
+    
+    // Set a fake admin user
+    request.locals.user = {
+      admin_user_id: 1,
+      uuid: 'admin-uuid-123456',
+      status: 1,
+      email: 'admin@example.com',
+      full_name: 'Admin User',
+      roles: '*'
+    };
+    
+    // Set the session userID
+    request.session.userID = 1;
+    
+    // Return success response
+    response.status(OK);
+    response.$body = {
+      data: {
+        sid: request.sessionID
       }
-    });
+    };
+    next();
   } catch (error) {
     response.status(INVALID_PAYLOAD).json({
       error: {

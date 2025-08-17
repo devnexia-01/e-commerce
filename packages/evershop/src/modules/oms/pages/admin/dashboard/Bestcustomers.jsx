@@ -58,6 +58,11 @@ BestCustomers.propTypes = {
   listUrl: PropTypes.string.isRequired
 };
 
+export const layout = {
+  areaId: 'rightSide',
+  sortOrder: 20
+};
+
 export const query = `
   query Query {
     setting {
